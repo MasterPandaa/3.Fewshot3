@@ -1,8 +1,9 @@
-import sys
 import math
 import random
+import sys
+from typing import List, Set, Tuple
+
 import pygame
-from typing import List, Tuple, Set
 
 # ------------------------------
 # Config & Constants
@@ -16,7 +17,7 @@ maze_layout: List[List[int]] = [
     [1, 2, 2, 2, 2, 2, 1],
     [1, 3, 1, 1, 1, 3, 1],
     [1, 2, 2, 2, 2, 2, 1],
-    [1, 1, 1, 1, 1, 1, 1]
+    [1, 1, 1, 1, 1, 1, 1],
 ]
 
 TILE_SIZE = 64  # Scales the board. 64x64 px per tile = 448x448 window for 7x7
@@ -57,10 +58,10 @@ LEFT = (-1, 0)
 RIGHT = (1, 0)
 STOP = (0, 0)
 
-
 # ------------------------------
 # Helper Functions
 # ------------------------------
+
 
 def add_tuple(a: Tuple[int, int], b: Tuple[int, int]) -> Tuple[int, int]:
     return (a[0] + b[0], a[1] + b[1])
@@ -141,7 +142,7 @@ class Maze:
 
     def neighbors_open(self, cell: Tuple[int, int]) -> List[Tuple[int, int]]:
         c, r = cell
-        candidates = [(c+1, r), (c-1, r), (c, r+1), (c, r-1)]
+        candidates = [(c + 1, r), (c - 1, r), (c, r + 1), (c, r - 1)]
         return [p for p in candidates if not self.is_wall(p)]
 
     def draw(self, screen: pygame.Surface):
@@ -158,14 +159,14 @@ class Maze:
                     pygame.draw.rect(screen, BLUE, (x, y, TILE_SIZE, TILE_SIZE))
 
         # Pellets
-        for (c, r) in self.pellets:
+        for c, r in self.pellets:
             cx = c * TILE_SIZE + TILE_SIZE // 2
             cy = r * TILE_SIZE + TILE_SIZE // 2 + UI_HEIGHT
             pygame.draw.circle(screen, WHITE, (cx, cy), max(4, TILE_SIZE // 12))
 
         # Power pellets (pulse)
         pulse = 2 + int(2 * math.sin(pygame.time.get_ticks() / 150.0))
-        for (c, r) in self.power_pellets:
+        for c, r in self.power_pellets:
             cx = c * TILE_SIZE + TILE_SIZE // 2
             cy = r * TILE_SIZE + TILE_SIZE // 2 + UI_HEIGHT
             pygame.draw.circle(screen, ORANGE, (cx, cy), max(8, TILE_SIZE // 6) + pulse)
@@ -175,7 +176,13 @@ class Maze:
 # Actors
 # ------------------------------
 class Actor:
-    def __init__(self, maze: Maze, cell: Tuple[int, int], color: Tuple[int, int, int], speed: float):
+    def __init__(
+        self,
+        maze: Maze,
+        cell: Tuple[int, int],
+        color: Tuple[int, int, int],
+        speed: float,
+    ):
         self.maze = maze
         self.pos = list(grid_to_pixel(cell))  # [x, y] in pixels
         self.color = color
@@ -219,7 +226,9 @@ class Actor:
                 self.pos[1] += self.dir[1] * frac
 
     def draw(self, screen: pygame.Surface):
-        pygame.draw.circle(screen, self.color, (int(self.pos[0]), int(self.pos[1])), int(self.radius))
+        pygame.draw.circle(
+            screen, self.color, (int(self.pos[0]), int(self.pos[1])), int(self.radius)
+        )
 
 
 class Pacman(Actor):
@@ -294,7 +303,7 @@ class Game:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption('Pacman (Pygame)')
+        pygame.display.set_caption("Pacman (Pygame)")
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(FONT_NAME, 28)
         self.big_font = pygame.font.Font(FONT_NAME, 40)
@@ -338,7 +347,9 @@ class Game:
         for g in self.ghosts:
             if not g.alive:
                 continue
-            dist = math.hypot(self.pacman.pos[0] - g.pos[0], self.pacman.pos[1] - g.pos[1])
+            dist = math.hypot(
+                self.pacman.pos[0] - g.pos[0], self.pacman.pos[1] - g.pos[1]
+            )
             if dist < TILE_SIZE * 0.6:
                 if g.frightened:
                     # Eat ghost
@@ -376,7 +387,9 @@ class Game:
         self.screen.blit(lives_text, (WIDTH - 16 - lives_text.get_width(), 16))
 
         if self.power_expires_at:
-            remaining = max(0, (self.power_expires_at - pygame.time.get_ticks()) // 1000)
+            remaining = max(
+                0, (self.power_expires_at - pygame.time.get_ticks()) // 1000
+            )
             ptext = self.font.render(f"Power: {remaining}s", True, ORANGE)
             self.screen.blit(ptext, (WIDTH // 2 - ptext.get_width() // 2, 16))
 
@@ -426,11 +439,21 @@ class Game:
                 for g in self.ghosts:
                     if g.alive:
                         color = GREY if not g.frightened else BLUE
-                        pygame.draw.circle(self.screen, color, (int(g.pos[0]), int(g.pos[1])), int(g.radius))
+                        pygame.draw.circle(
+                            self.screen,
+                            color,
+                            (int(g.pos[0]), int(g.pos[1])),
+                            int(g.radius),
+                        )
                     else:
                         # Draw small eyes marker at spawn
                         sx, sy = grid_to_pixel(g.respawn_cell)
-                        pygame.draw.circle(self.screen, WHITE, (int(sx), int(sy)), int(TILE_SIZE * 0.15))
+                        pygame.draw.circle(
+                            self.screen,
+                            WHITE,
+                            (int(sx), int(sy)),
+                            int(TILE_SIZE * 0.15),
+                        )
                 # Draw Pacman on top
                 self.pacman.draw(self.screen)
             else:
@@ -450,5 +473,5 @@ class Game:
         sys.exit()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Game().run()
